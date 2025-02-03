@@ -19,6 +19,7 @@ library
     , containers
     , text
     , http-types
+    , regex-compat
 
 executable shortener
   import: common

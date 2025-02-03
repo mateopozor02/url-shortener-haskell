@@ -30,3 +30,23 @@ executable shortener
     , blaze-html >= 0.9 && < 0.10
     , scotty >= 0.20 && < 0.21
     , http-types
+
+test-suite spec
+  import: common
+  hs-source-dirs: test
+  main-is: Main.hs
+  other-modules:
+    ShortenerSpec
+  build-depends:
+    , QuickCheck
+    , hspec >= 2.10.10
+    , shortener
+    , base >= 4.7 && < 5
+    , hspec-discover
+  build-tool-depends: hspec-discover:hspec-discover
+  default-extensions:
+    ScopedTypeVariables
+    TypeApplications
+  ghc-options:
+    -Wno-orphans
+  type: exitcode-stdio-1.0

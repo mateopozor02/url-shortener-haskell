@@ -39,7 +39,20 @@ shortener = do
       url <- formParam "url"
       if T.null (LT.toStrict url) || not (isValidUrl (LT.toStrict url))
         then do
-          redirect "/?error=invalid_url"
+          (_, urls) <- liftIO $ readIORef urlsR
+          html $ renderHtml $
+            H.html $ do
+              H.body $ do
+                H.h1 "Shortener"
+                H.div H.! A.style "color: red;" $ "Invalid URL. Please try again."
+                H.form H.! A.method "post" H.! A.action "/" $ do
+                  H.input H.! A.type_ "text" H.! A.name "url"
+                  H.input H.! A.type_ "submit"
+              H.table $
+                for_ (M.toList urls) $ \(i, savedUrl) ->
+                  H.tr $ do
+                    H.td (H.toHtml i)
+                    H.td (H.text savedUrl)
         else do
           liftIO $ modifyIORef urlsR $
             \(i, urls) ->

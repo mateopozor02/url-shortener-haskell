@@ -16,5 +16,5 @@ spec = describe "isValidUrl" $ do
     isValidUrl "http://example" `shouldBe` False
     isValidUrl "https://example" `shouldBe` False
     isValidUrl "www.example" `shouldBe` False
-    isValidUrl "ftp://example.com" `shouldBe` False
     isValidUrl "mailto:user@example.com" `shouldBe` False
+    isValidUrl "" `shouldBe` False

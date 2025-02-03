@@ -8,12 +8,14 @@ import Data.IORef (modifyIORef, newIORef, readIORef)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Network.HTTP.Types (status404)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Web.Scotty
+import Text.Regex (mkRegex, matchRegex)
 
 shortener :: IO ()
 shortener = do
@@ -35,10 +37,14 @@ shortener = do
                   H.td (H.text url)
     post "/" $ do
       url <- formParam "url"
-      liftIO $ modifyIORef urlsR $
-        \(i, urls) ->
-          (i + 1, M.insert i url urls)
-      redirect "/"
+      if T.null (LT.toStrict url) || not (isValidUrl (LT.toStrict url))
+        then do
+          redirect "/?error=invalid_url"
+        else do
+          liftIO $ modifyIORef urlsR $
+            \(i, urls) ->
+              (i + 1, M.insert i (LT.toStrict url) urls)
+          redirect "/"
     get "/:n" $ do
       n <- captureParam "n"
       (_, urls) <- liftIO $ readIORef urlsR
@@ -47,3 +53,10 @@ shortener = do
           redirect (LT.fromStrict url)
         Nothing ->
           raiseStatus status404 "not found"
+
+isValidUrl :: Text -> Bool
+isValidUrl url = 
+  let urlRegex = mkRegex "^(http://|https://|www\\.)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(/.*)?$"
+  in case matchRegex urlRegex (T.unpack url) of
+       Just _  -> True
+       Nothing -> False
